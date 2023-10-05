@@ -114,19 +114,19 @@ app.get('/tags', (req, res) => {
 
 
 app.post('/tags', (req, res) => {
-    const { tag } = req.body;
-    console.log(tag);
-    if (!tag) {
+    const body = req.body;
+    console.log(body);
+    if (!body.title) {
         // If 'tag' is not present in the request body, clear the 'createdTags' array
         createdTags.length = 0;
         return res.sendStatus(204); // Respond with a 204 No Content status on successful deletion
     }
 
     // Add the new tag to the 'createdTags' array
-    createdTags.push(tag);
+    createdTags.push(body.title);
 
     // Respond with just the 'tag' property
-    res.status(201).json({ tag }); // Return the new tag as a JSON object
+    res.status(201).json(body); // Return the new tag as a JSON object
 });
 
 
