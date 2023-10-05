@@ -114,19 +114,22 @@ app.get('/tags', (req, res) => {
 
 
 app.post('/tags', (req, res) => {
-    const { tag } = req.body;
-    console.log(tag);
-    if (!tag) {
+    const title  = "title";
+    console.log(title);
+    if (!title) {
         // If 'tag' is not present in the request body, clear the 'createdTags' array
         createdTags.length = 0;
         return res.sendStatus(204); // Respond with a 204 No Content status on successful deletion
     }
 
     // Add the new tag to the 'createdTags' array
-    createdTags.push(tag);
+    createdTags.push(title);
 
-    // Respond with just the 'tag' property
-    res.status(201).json({ tag }); // Return the new tag as a JSON object
+    // Set the content type of the response to JSON
+    res.setHeader('Content-Type', 'application/json');
+
+    // Respond with the 'tag' and 'title' properties
+    res.status(201).json({title: 'title' }); // Return the new tag as a JSON object with a 'title' property
 });
 
 
@@ -171,7 +174,7 @@ app.get('/tags/:tag', (req, res) => {
     }
   });
 
-  
+
     app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     });
