@@ -1,18 +1,25 @@
 const express = require('express');
 const cors = require('cors');
+const fetch = require('node-fetch');
 const app = express();
 const port = 8080;
 
 app.use(express.json());
 app.use(cors());
 
-const allTags = ["work","coding","miscellaneous","business"];
+const allTags = {
+    1: "work",
+    2: "coding",
+    3: "miscellaneous",
+    4: "business"
+  };
 const createdTags = [];
 const TODOS = {
   0: { title: 'build an API', order: 1, completed: false, tags: ['work', 'coding']},
   1: { title: '?????', order: 2, completed: false, tags: ['miscellaneous']  },
   2: { title: 'profit!', order: 3, completed: false,tags: ['work', 'business'] },
 };
+
 
 app.get('/todos', (req, res) => {
     const tag = req.query.tag;
@@ -114,22 +121,19 @@ app.get('/tags', (req, res) => {
 
 
 app.post('/tags', (req, res) => {
-    const title  = "title";
-    console.log(title);
-    if (!title) {
+    const body = req.body;
+    console.log(body);
+    if (!body.title) {
         // If 'tag' is not present in the request body, clear the 'createdTags' array
         createdTags.length = 0;
         return res.sendStatus(204); // Respond with a 204 No Content status on successful deletion
     }
 
     // Add the new tag to the 'createdTags' array
-    createdTags.push(title);
+    createdTags.push(body.title);
 
-    // Set the content type of the response to JSON
-    res.setHeader('Content-Type', 'application/json');
-
-    // Respond with the 'tag' and 'title' properties
-    res.status(201).json({title: 'title' }); // Return the new tag as a JSON object with a 'title' property
+    // Respond with just the 'tag' property
+    res.status(201).json(body); // Return the new tag as a JSON object
 });
 
 
@@ -174,7 +178,11 @@ app.get('/tags/:tag', (req, res) => {
     }
   });
 
+  /////////////////////////////////////////////////////////
 
+  
+  
+  
     app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     });
