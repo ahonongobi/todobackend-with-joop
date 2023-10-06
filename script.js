@@ -7,43 +7,105 @@ app.use(express.json());
 app.use(cors());
 
 const TAGS = [
-  { id: 0, title: 'work', url: 'http://localhost:8080/tags/0' },
-  { id: 1, title: 'miscellaneous', url: 'http://localhost:8080/tags/1' },
-  { id: 2, title: 'coding', url: 'http://localhost:8080/tags/2' },
-  { id: 3, title: 'business', url: 'http://localhost:8080/tags/3' },
-];
+    {
+      id: '0',
+      title: 'work',
+      url: 'http://localhost:8080/tags/0',
+      todos: [
+        {
+          id: '0',
+          title: 'build an API',
+          completed: false,
+          url: 'string',
+          order: 10,
+        },
+        {
+          id: '2',
+          title: 'profit!',
+          completed: false,
+          url: 'string',
+          order: 3,
+        },
+      ],
+    },
+    {
+      id: '1',
+      title: 'miscellaneous',
+      url: 'http://localhost:8080/tags/1',
+      todos: [
+        {
+          id: '1',
+          title: '?????',
+          completed: false,
+          url: 'string',
+          order: 2,
+        },
+      ],
+    },
+    {
+      id: '2',
+      title: 'coding',
+      url: 'http://localhost:8080/tags/2',
+      todos: [
+        {
+          id: '0',
+          title: 'build an API',
+          completed: false,
+          url: 'string',
+          order: 10,
+        },
+      ],
+    },
+    {
+      id: '3',
+      title: 'business',
+      url: 'http://localhost:8080/tags/3',
+      todos: [
+        {
+          id: '2',
+          title: 'profit!',
+          completed: false,
+          url: 'string',
+          order: 3,
+        },
+      ],
+    },
+  ];
+  
+  
 //////////////////////////////////////////////////////////////////////////////////
 const TODOS = {
     0: {
-      id: 0,
+      id: '0',
       title: 'build an API',
       order: 1,
       completed: false,
       tags: [
-        { id: 0, title: 'work' },
-        { id: 1, title: 'coding' },
+        { id: '0', title: 'work' },
+        { id: '1', title: 'coding' },
       ],
     },
     1: {
-      id: 1,
+      id: '1',
       title: '?????',
       order: 2,
       completed: false,
       tags: [
-        { id: 2, title: 'miscellaneous' },
+        { id: '2', title: 'miscellaneous' },
       ],
     },
     2: {
-      id: 2,
+      id: '2',
       title: 'profit!',
       order: 3,
       completed: false,
       tags: [
-        { id: 0, title: 'work' },
-        { id: 3, title: 'business' },
+        { id: '0', title: 'work' },
+        { id: '3', title: 'business' },
       ],
     },
   };
+  
   
   
   
