@@ -203,14 +203,32 @@ app.delete('/tags', (req, res) => {
 });
 
 app.get('/tags/:id', (req, res) => {
-    const id = parseInt(req.params.id);
+  const id = parseInt(req.params.id);
   
-    if (isNaN(id) || id < 0 || id >= TAGS.length) {
-      res.status(404).json({ error: 'Tag not found' });
-    } else {
-      res.json(TAGS[id]);
-    }
+  if (isNaN(id) || id < 0 || id >= TAGS.length) {
+    // L'ID n'existe pas, essayez de trouver l'ID du tag avec le titre 'associated tag'
+    db.query('SELECT id FROM tags WHERE title = ?', ['associated tag'], (err, results) => {
+      if (err) {
+        console.error('Error finding tag ID:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
+
+      if (results.length === 0) {
+        // Si aucun tag avec le titre 'associated tag' n'a été trouvé, renvoyer une erreur 404
+        res.status(404).json({ error: 'Tag not found' });
+      } else {
+        // Si un tag avec le titre 'associated tag' a été trouvé, renvoyer son ID
+        const associatedTagId = results[0].id;
+        res.json({ id: associatedTagId });
+      }
+    });
+  } else {
+    // L'ID existe, renvoyer les données du tag avec cet ID
+    res.json(TAGS[id]);
+  }
 });
+
 
 app.patch('/tags/:id', (req, res) => {
     const id = parseInt(req.params.id);
