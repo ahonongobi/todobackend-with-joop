@@ -272,32 +272,57 @@ app.delete('/todos', (req, res) => {
   // post a tag endpoint
   app.post('/tags', (req, res) => {
     const data = req.body;
-  
+
     if (!data || !data.title) {
-      res.status(400).json({ error: '"title" is a required field' });
+        res.status(400).json({ error: '"title" is a required field' });
     } else {
-      // Créez une requête d'insertion SQL pour ajouter le nouveau tag
-      const insertQuery = 'INSERT INTO tags (title) VALUES (?)';
-  
-      db.query(insertQuery, [data.title], (err, result) => {
-        if (err) {
-          console.error('Error inserting tag:', err);
-          res.status(500).json({ error: 'Internal Server Error' });
-          return;
-        }
-  
-        const newTagId = result.insertId;
-        const newTag = {
-          id: newTagId,
-          title: data.title,
-          url: `http://localhost:8080/tags/${newTagId}`,
-          todos: [],
-        };
-  
-        res.status(201).json(newTag);
-      });
+        // Créez une requête d'insertion SQL pour ajouter le nouveau tag
+        const insertQuery = 'INSERT INTO tags (title, url) VALUES (?, ?)';
+
+        db.query(insertQuery, [data.title, ''], (err, result) => {
+            if (err) {
+                console.error('Error inserting tag:', err);
+                res.status(500).json({ error: 'Internal Server Error' });
+                return;
+            }
+
+            const newTagId = result.insertId;
+            // Générez l'URL complète avec l'ID du nouveau tag
+            const newTagUrl = `http://localhost:8080/tags/${newTagId}`;
+
+            // Mettez à jour l'URL dans la base de données
+            const updateUrlQuery = 'UPDATE tags SET url = ? WHERE id = ?';
+            db.query(updateUrlQuery, [newTagUrl, newTagId], (updateErr) => {
+                if (updateErr) {
+                    console.error('Error updating tag URL:', updateErr);
+                    res.status(500).json({ error: 'Internal Server Error' });
+                    return;
+                }
+
+                // Mettez à jour la colonne tag_id dans la table todos
+                const updateTodosQuery = 'UPDATE todos SET tag_id = ? WHERE tag_id IS NULL';
+                db.query(updateTodosQuery, [newTagId], (updateTodosErr) => {
+                    if (updateTodosErr) {
+                        console.error('Error updating todos with new tag ID:', updateTodosErr);
+                        res.status(500).json({ error: 'Internal Server Error' });
+                        return;
+                    }
+
+                    const newTag = {
+                        id: newTagId,
+                        title: data.title,
+                        url: newTagUrl,
+                        todos: [],
+                    };
+
+                    res.status(201).json(newTag);
+                });
+            });
+        });
     }
-  });
+});
+
+
   
   // delete all tags endpoint
   
@@ -430,7 +455,7 @@ app.get('/todos/:id/tags', (req, res) => {
   }
 
   // Requête SQL pour récupérer les tags associés à un todo par son ID
-  const selectQuery = 'SELECT tags.id, tags.title, tags.url FROM tags JOIN todo_tags ON tags.id = todo_tags.tag_id WHERE todo_tags.todo_id = ?';
+  const selectQuery = 'SELECT tag_id FROM todos  WHERE id = ?';
 
   // Exécutez la requête SQL
   db.query(selectQuery, [todoId], (err, results) => {
@@ -444,7 +469,80 @@ app.get('/todos/:id/tags', (req, res) => {
   });
 });
 
-  
+ //Get the list of todos associated with a tag
+ app.get('/tags/:tagId/todos', (req, res) => {
+  const tagId = parseInt(req.params.tagId);
+
+  if (isNaN(tagId)) {
+    res.status(400).json({ error: 'Invalid tag ID' });
+    return;
+  }
+
+  // Requête SQL pour obtenir la liste des todos associés à un tag
+  const query = 'SELECT * FROM todos WHERE tag_id = ?';
+
+  db.query(query, [tagId], (err, results) => {
+    if (err) {
+      console.error('Error fetching todos associated with the tag:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    res.json([results, title]);
+  });
+});
+
+app.post('/todos/:id/tags', (req, res) => {
+  const todoId = parseInt(req.params.id); // Parse the ID as an integer
+
+  // Check if the todoId is valid
+  if (isNaN(todoId)) {
+      return res.status(400).json({ error: 'Invalid todo ID' });
+  }
+
+  // Retrieve the tag_id from the "todos" table based on the todo ID
+  const selectQuery = 'SELECT tag_id FROM todos WHERE id = ?';
+
+  db.query(selectQuery, [todoId], (selectErr, selectResult) => {
+      if (selectErr) {
+          console.error('Error retrieving tag ID:', selectErr);
+          res.status(500).json({ error: 'Internal Server Error' });
+          return;
+      }
+
+      // Check if the todo exists
+      if (selectResult.length === 0) {
+          return res.status(404).json({ error: 'Todo not found' });
+      }
+
+      const tagId = selectResult[0].tag_id;
+
+      // Now, retrieve the title of the tag using the tagId
+      const selectTagQuery = 'SELECT title FROM tags WHERE id = ?';
+
+      db.query(selectTagQuery, [tagId], (selectTagErr, selectTagResult) => {
+          if (selectTagErr) {
+              console.error('Error retrieving tag title:', selectTagErr);
+              res.status(500).json({ error: 'Internal Server Error' });
+              return;
+          }
+
+          // Check if the tag exists
+          if (selectTagResult.length === 0) {
+              return res.status(404).json({ error: 'Tag not found' });
+          }
+
+          const tagTitle = selectTagResult[0].title;
+
+          // Include the tag title in the response
+          res.status(200).json({ message: 'Tag associated with todo successfully', tag_id: tagId, title: tagTitle });
+      });
+  });
+});
+
+
+
+
 
 
   app.listen(port, () => {
